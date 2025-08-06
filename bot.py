@@ -4,6 +4,7 @@ from discord.ext import commands
 from config import BOT_TOKEN
 import gitcord
 import json
+import study_status
 
 
 intents = discord.Intents.default()
@@ -69,5 +70,24 @@ async def gitfetch(ctx, git_username, git_repo_name):
     await ctx.send(response)
 
 
-bot.run(BOT_TOKEN)
+@bot.command()
+async def studying(ctx, topic):
+    name = ctx.author.display_name
+    study_status.update_status(name, topic)
+    await ctx.send(f"Happy studying {topic}, {name}!")
+
+
+@bot.command()
+async def status(ctx):
+    response = study_status.get_all_status()
+    await ctx.send(response)
+
+
+if __name__ == "__main__":
+    try:
+        study_status.create_status_table()
+        bot.run(BOT_TOKEN)
+    except KeyboardInterrupt:
+        study_status.close_status_db()
+
 
