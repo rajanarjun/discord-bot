@@ -2,7 +2,7 @@
 import discord
 from discord.ext import commands
 from config import BOT_TOKEN
-import gitcord
+from gitcord import GitCommitTracker
 import json
 import study_status
 
@@ -50,21 +50,22 @@ async def add(ctx, *args):
 
 @bot.command()
 async def gitfetch(ctx, git_username, git_repo_name):
-    git_info = gitcord.fetch_gitinfo(git_username, git_repo_name)
-    if git_info:
-        name = git_info["commit"]["author"]["name"]
-        commit_id = git_info["sha"][:7]
-        commit_message = git_info["commit"]["message"]
-        last_commit_date = git_info["commit"]["author"]["date"][:10]
-        response = (
-            f"Author: {name}\n"
-            f"Repository: {git_repo_name}\n"
-            f"Last commit ID: {commit_id}\n"
-            f"Last commit message: {commit_message}\n"
-            f"Last commit date: {last_commit_date}\n"
-            f"Link: https://github.com/{git_username}/{git_repo_name}/"
-        )
-    else:
+    gitinfo = GitCommitTracker(git_username, git_repo_name)
+    git_info = gitinfo.get_commit_info()
+    name = git_info["author"]
+    commit_id = git_info["commit_id"]
+    commit_message = git_info["message"]
+    last_commit_date = git_info["date"]
+
+    response = (
+        f"Author: {name}\n"
+        f"Repository: {git_repo_name}\n"
+        f"Last commit ID: {commit_id}\n"
+        f"Last commit message: {commit_message}\n"
+        f"Last commit date: {last_commit_date}\n"
+    )
+    
+    if not git_info:
         response = "Could not fetch GitHub info."
     
     await ctx.send(response)
