@@ -14,7 +14,6 @@ def create_status_table():
             )
         """)
         conn.commit()
-        print("SQL table created")
     except sqlite3.Error as e:
         print(f"SQLite error: {e}")
 
@@ -33,6 +32,31 @@ def update_status(username, status):
         print(f"SQLite error: {e}")
 
 
+def how_long_ago(status_ts):
+    now = datetime.now()
+    status_ts_format = "%Y-%m-%d %H:%M:%S"
+    saved_time = datetime.strptime(status_ts, status_ts_format)
+    diff = now - saved_time
+    if diff.seconds <= 3600:
+        if diff.seconds <= 60:
+            if diff.seconds <= 5:
+                return f"Just now"
+            else:
+                return f"{diff.seconds} seconds ago"
+        else:
+            minutes = diff.seconds // 60
+            if minutes == 1:
+                return f"{minutes} minute ago"
+            else:
+                return f"{minutes} minutes ago"
+    else:
+        hours = diff.seconds // 3600
+        if hours == 1:
+            return f"{hours} hour ago"
+        else:
+            return f"{hours} hours ago"
+
+
 def get_user_status():
     pass
 
@@ -41,9 +65,10 @@ def get_all_status():
     try:
         cur.execute("SELECT * FROM status")
         rows = cur.fetchall()
-        lines = []
+        lines = ["Currently Studying: "]
         for row in rows:
-            s = f"* {row[0]} — {row[1]} ({row[2]})" 
+            t = how_long_ago(row[2])
+            s = f"* {row[0]} — {row[1]} ({t})" 
             lines.append(s)
         result = "\n".join(lines)
         return result
